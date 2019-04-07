@@ -4,6 +4,8 @@ A simple Vue.js based generator that uses parabolic formula to build a color pal
 
 Inspired by Jeeyoung Jung's article [Designing Systematic Colors](https://uxplanet.org/designing-systematic-colors-b5d2605b15c)
 
+## [Demo](https://hypejunction.github.io/color-wizard/)
+
 ![image](https://github.com/hypeJunction/color-wizard/blob/master/public/color-wizard.png)
 
 ## Project setup
