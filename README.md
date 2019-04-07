@@ -1,4 +1,8 @@
-# color-wizard
+# Systematic Color Palette Generator
+
+A simple Vue.js based generator that uses parabolic formula to build a color palette.
+
+Inspired by Jeeyoung Jung's article [Designing Systematic Colors](https://uxplanet.org/designing-systematic-colors-b5d2605b15c)
 
 ## Project setup
 ```
