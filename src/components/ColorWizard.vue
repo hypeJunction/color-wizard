@@ -38,8 +38,7 @@
             <div class="field">
               <label>Saturation</label>
               <div class="field inline">
-                &nbsp;
-                <div class="ui right labeled input">
+                <div class="ui input">
                   <input
                     type="number"
                     step="0.01"
@@ -48,9 +47,8 @@
                     v-model.number="model.factor"
                     required
                   />
-                  <div class="ui label">Luminance<sup>2</sup></div>
                 </div>
-                <span>+</span>
+                <span>x Luminance<sup>2</sup></span>&nbsp;<span>+</span>
                 &nbsp;
                 <div class="ui input">
                   <input
@@ -213,11 +211,12 @@ const levels = offsets.map((offset, index) => ({
 }));
 
 const defaults = {
+  gray: 0,
   red: 360,
   pink: 339,
-  grape: 174,
+  grape: 288,
   violet: 255,
-  indigo: 288,
+  indigo: 230,
   blue: 208,
   cyan: 188,
   teal: 162,
@@ -225,7 +224,6 @@ const defaults = {
   lime: 85,
   yellow: 39,
   orange: 24,
-  gray: 210,
 };
 
 const colors = Object.keys(defaults)
@@ -241,9 +239,9 @@ export default {
   data() {
     return {
       model: {
-        luminance: 55,
-        factor: 2.8,
-        shift: 0,
+        luminance: 46,
+        factor: 0.15,
+        shift: 0.8,
         contrast: 4.5,
         levels,
         colors,
