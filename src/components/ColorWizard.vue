@@ -49,7 +49,7 @@
                   />
                 </div>
                 <span>x Luminance<sup>2</sup></span>&nbsp;<span>+</span>
-                &nbsp;
+                                                    &nbsp;
                 <div class="ui input">
                   <input
                     type="number"
@@ -145,7 +145,7 @@
 
                 <div class="field">
                   <div class="ui checkbox">
-                    <input type="checkbox" v-model="color.grayscale">
+                    <input type="checkbox" v-model="color.greyscale">
                     <label>Grayscale</label>
                   </div>
                 </div>
@@ -183,6 +183,19 @@
                     <div>{{ swatch.toRgbString() }}</div>
                     <div>{{ swatch.toHslString() }}</div>
                   </div>
+
+                  <div class="ui divider"></div>
+
+                  <div class="field">
+                    <label>L Offset</label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="-50"
+                      max="50"
+                      v-model.number="color.levels[index2].offset"
+                    />
+                  </div>
                 </template>
               </td>
             </tr>
@@ -211,7 +224,7 @@ const levels = offsets.map((offset, index) => ({
 }));
 
 const defaults = {
-  gray: 0,
+  grey: 0,
   red: 360,
   pink: 339,
   grape: 288,
@@ -230,7 +243,10 @@ const colors = Object.keys(defaults)
   .map(e => ({
     name: e,
     hue: defaults[e],
-    grayscale: e === 'gray',
+    greyscale: e === 'grey',
+    levels: offsets.map(() => ({
+      offset: 0,
+    })),
   }));
 
 export default {
@@ -258,7 +274,9 @@ export default {
         return Object.keys(this.model.levels)
           .map((i) => {
             const level = this.model.levels[i];
-            const luminance = minmax((this.model.luminance + level.offset) / 100);
+            const colorLevel = color.levels[i];
+            const offset = level.offset + colorLevel.offset;
+            const luminance = minmax((this.model.luminance + offset) / 100);
             const saturation = minmax(calcSaturation(luminance));
 
             const swatch = tinycolor({
@@ -267,12 +285,12 @@ export default {
               l: luminance,
             });
 
-            if (color.grayscale) {
+            if (color.greyscale) {
               swatch.greyscale();
             }
 
             swatch.name = `${color.name}-${i}`;
-            swatch.offset = level.offset;
+            swatch.offset = offset;
             swatch.text = level.whiteText ? '#ffffff' : '#000000';
             swatch.contrast = this.calcContrast(tinycolor(swatch.text), swatch);
 
@@ -294,6 +312,8 @@ export default {
       this.model.colors.push({
         name: 'other',
         hue: Math.floor(Math.random() * Math.floor(360)),
+        greyscale: false,
+        levels: this.levels.map(() => ({ offset: 0 })),
       });
     },
 
@@ -303,6 +323,7 @@ export default {
 
     removeLevel(index) {
       this.model.levels.splice(index, 1);
+      this.model.colors.forEach(color => color.levels.splice(index, 1));
     },
 
     calcContrast(foreground, background) {

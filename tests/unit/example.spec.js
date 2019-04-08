@@ -30,6 +30,7 @@ describe('ColorWizard.vue', () => {
           name: 'test',
           hue: 5,
           grayscale: false,
+          levels: [{ offset: 0 }],
         }],
       },
     });
