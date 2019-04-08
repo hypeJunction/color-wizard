@@ -10,9 +10,11 @@
     "deploy": "./.scripts/deploy.sh"
   },
   "dependencies": {
+    "chart.js": "^2.8.0",
     "core-js": "^2.6.5",
     "tinycolor2": "^1.4.1",
     "vue": "^2.6.6",
+    "vue-chartjs": "^3.4.2",
     "vue-code-highlight": "^0.7.0"
   },
   "devDependencies": {

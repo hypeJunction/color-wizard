@@ -19,61 +19,81 @@
 
     <form class="ui form">
       <div class="ui grid padded">
-        <div class="column">
-          <div class="fields">
-            <div class="field">
-              <label>Base luminance</label>
+        <div class="four wide column">
+          <div class="field">
+            <label>Base luminance</label>
+            <div class="ui input">
+              <input
+                type="number"
+                step="1"
+                min="0"
+                max="100"
+                v-model.number="model.luminance"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Saturation</label>
+            <div class="field inline">
               <div class="ui input">
                 <input
                   type="number"
-                  step="1"
-                  min="0"
+                  step="0.01"
+                  min="-100"
                   max="100"
-                  v-model.number="model.luminance"
+                  v-model.number="model.factor"
                   required
                 />
               </div>
-            </div>
-
-            <div class="field">
-              <label>Saturation</label>
-              <div class="field inline">
-                <div class="ui input">
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="-100"
-                    max="100"
-                    v-model.number="model.factor"
-                    required
-                  />
-                </div>
-                <span>x Luminance<sup>2</sup></span>&nbsp;<span>+</span>
-                                                    &nbsp;
-                <div class="ui input">
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="-100"
-                    max="100"
-                    v-model.number="model.shift"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div class="field">
-              <label>Target Contrast Ratio</label>
+              <span>x Luminance<sup>2</sup></span>&nbsp;<span>+</span>
+                                                  &nbsp;
               <div class="ui input">
                 <input
                   type="number"
-                  step="0.1"
-                  min="1"
-                  max="21"
-                  v-model.number="model.contrast"
+                  step="0.01"
+                  min="-100"
+                  max="100"
+                  v-model.number="model.shift"
                   required
                 />
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Target Contrast Ratio</label>
+            <div class="ui input">
+              <input
+                type="number"
+                step="0.1"
+                min="1"
+                max="21"
+                v-model.number="model.contrast"
+                required
+              />
+            </div>
+          </div>
+        </div>
+        <div class="four wide column">
+          <color-chart :chart-data="chartData" :options="chartOptions"/>
+        </div>
+
+        <div class="eight wide column">
+          <div class="palette">
+            <div v-for="(color, index) in model.colors" :key="index">
+              <div
+                v-for="(swatch, index2) in swatches[index]"
+                :key="index2"
+              >
+                <template v-if="swatch">
+                  <div
+                    class="color-box small"
+                    :style="getBoxStyle(swatch)"
+                  >
+                  </div>
+                </template>
               </div>
             </div>
           </div>
@@ -216,6 +236,7 @@
 <script>
 import tinycolor from 'tinycolor2';
 import ColorCode from './ColorCode.vue';
+import ColorChart from './ColorChart.vue';
 
 const offsets = [44, 40, 36, 27, 18, 9, 0, -9, -18, -27];
 const levels = offsets.map((offset, index) => ({
@@ -251,7 +272,10 @@ const colors = Object.keys(defaults)
 
 export default {
   name: 'ColorWizard',
-  components: { ColorCode },
+  components: {
+    ColorChart,
+    ColorCode,
+  },
   data() {
     return {
       model: {
@@ -298,6 +322,62 @@ export default {
           });
       });
     },
+
+    chartData() {
+      const minmax = val => Math.max(Math.min(val, 1), 0);
+      const calcSaturation = y => y * y * this.model.factor + this.model.shift;
+
+      return {
+        datasets: this.model.levels.map((level) => {
+          const luminance = minmax((level.offset + this.model.luminance) / 100);
+          const saturation = minmax(calcSaturation(luminance));
+
+          return {
+            backgroundColor: `hsla(0, ${saturation * 100}%, ${luminance * 100}%, 1)`,
+            borderColor: 'transparent',
+            fill: false,
+            pointRadius: 5,
+            data: [{
+              y: luminance,
+              x: saturation,
+            }],
+          };
+        }),
+      };
+    },
+
+    chartOptions() {
+      return {
+        legend: {
+          display: false,
+        },
+        title: {
+          display: false,
+        },
+        scales: {
+          xAxes: [{
+            ticks: {
+              min: 0,
+              max: 1,
+            },
+            scaleLabel: {
+              display: true,
+              labelString: 'Saturation',
+            },
+          }],
+          yAxes: [{
+            ticks: {
+              min: 0,
+              max: 1,
+            },
+            scaleLabel: {
+              display: true,
+              labelString: 'Luminance',
+            },
+          }],
+        },
+      };
+    },
   },
 
   methods: {
@@ -313,7 +393,7 @@ export default {
         name: 'other',
         hue: Math.floor(Math.random() * Math.floor(360)),
         greyscale: false,
-        levels: this.levels.map(() => ({ offset: 0 })),
+        levels: this.model.levels.map(() => ({ offset: 0 })),
       });
     },
 
@@ -364,6 +444,12 @@ export default {
     font-weight: bold;
   }
 
+  .color-box.small {
+    min-width: 32px;
+    height: 32px;
+    border-radius: 0;
+  }
+
   .color-name,
   .color-contrast {
     position: absolute;
@@ -387,5 +473,9 @@ export default {
 
   .color-meta > div {
     margin-top: 4px;
+  }
+
+  .palette {
+    display: flex;
   }
 </style>
