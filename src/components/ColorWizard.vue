@@ -48,6 +48,19 @@
                 />
               </div>
               <span>x Luminance<sup>2</sup></span>&nbsp;<span>+</span>
+
+              <div class="ui input">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="-100"
+                  max="100"
+                  v-model.number="model.adjust"
+                  required
+                />
+              </div>
+
+              <span>x Luminance</span>&nbsp;<span>+</span>
                                                   &nbsp;
               <div class="ui input">
                 <input
@@ -282,6 +295,7 @@ export default {
         luminance: 46,
         factor: 0.15,
         shift: 0.8,
+        adjust: 0,
         contrast: 4.5,
         levels,
         colors,
@@ -293,7 +307,7 @@ export default {
     swatches() {
       return this.model.colors.map((color) => {
         const minmax = val => Math.max(Math.min(val, 0.99), 0.01);
-        const calcSaturation = y => y * y * this.model.factor + this.model.shift;
+        const calcSaturation = y => y * y * this.model.factor + y * this.model.adjust + this.model.shift;
 
         return Object.keys(this.model.levels)
           .map((i) => {
@@ -325,7 +339,7 @@ export default {
 
     chartData() {
       const minmax = val => Math.max(Math.min(val, 1), 0);
-      const calcSaturation = y => y * y * this.model.factor + this.model.shift;
+      const calcSaturation = y => y * y * this.model.factor + y * this.model.adjust + this.model.shift;
 
       return {
         datasets: this.model.levels.map((level) => {
