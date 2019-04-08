@@ -76,11 +76,20 @@
       <div class="ui grid padded">
         <div class="column">
           <table class="ui celled table">
+            <thead>
+            <tr>
+              <th></th>
+              <th v-for="(level, index) in model.levels" :key="index">
+                Level {{ index }}
+              </th>
+            </tr>
+            </thead>
+            <tbody>
             <tr>
               <td></td>
               <td v-for="(level, index) in model.levels" :key="index">
                 <div class="field">
-                  <label>Luminance {{ index }}</label>
+                  <label>L Offset</label>
                   <input
                     type="number"
                     step="1"
@@ -90,9 +99,15 @@
                   />
                 </div>
 
-                <div class="ui checkbox">
-                  <input type="checkbox" v-model="level.whiteText">
-                  <label>White Text</label>
+                <div class="field">
+                  <div class="ui checkbox">
+                    <input type="checkbox" v-model="level.whiteText">
+                    <label>White Text</label>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <button class="mini ui button basic" @click.prevent="removeLevel(index)">Remove</button>
                 </div>
               </td>
             </tr>
@@ -116,9 +131,15 @@
                   />
                 </div>
 
-                <div class="ui checkbox">
-                  <input type="checkbox" v-model="color.grayscale">
-                  <label>Grayscale</label>
+                <div class="field">
+                  <div class="ui checkbox">
+                    <input type="checkbox" v-model="color.grayscale">
+                    <label>Grayscale</label>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <button class="mini ui button basic" @click.prevent="removeColor(index)">Remove</button>
                 </div>
               </td>
 
@@ -144,6 +165,7 @@
                 </template>
               </td>
             </tr>
+            </tbody>
           </table>
 
           <a class="ui button primary" @click.prevent="addColor">Add Color</a>
@@ -264,6 +286,14 @@ export default {
         name: 'other',
         hue: Math.floor(Math.random() * Math.floor(360)),
       });
+    },
+
+    removeColor(index) {
+      this.model.colors.splice(index, 1);
+    },
+
+    removeLevel(index) {
+      this.model.levels.splice(index, 1);
     },
 
     calcContrast(foreground, background) {
