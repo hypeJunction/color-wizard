@@ -5,6 +5,14 @@
         <a href="http://github.com/hypejunction/color-wizard"><h1>Systematic Color Palette <i class="github icon"></i>
         </h1>
         </a>
+
+        <p>
+          Systematic palette generator uses a parabolic formula to autofill color saturation for various intervals,
+          given color hue and luminance.
+          Each color swatch also shows you the color contrast against black/white text.
+          WCAG 2.0 specification requires color contrast of at least 4.5:1 for texts under 18pt (24px) for a
+          contrast to be considered accessible for people with vision impairments.
+        </p>
       </div>
     </div>
 
