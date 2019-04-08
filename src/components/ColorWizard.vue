@@ -15,7 +15,14 @@
             <div class="field">
               <label>Base luminance</label>
               <div class="ui input">
-                <input type="number" step="1" min="0" max="100" v-model.number="model.luminance" required>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="100"
+                  v-model.number="model.luminance"
+                  required
+                />
               </div>
             </div>
 
@@ -24,14 +31,42 @@
               <div class="field inline">
                 &nbsp;
                 <div class="ui right labeled input">
-                  <input type="number" step="0.01" min="-100" max="100" v-model.number="model.factor" required>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="-100"
+                    max="100"
+                    v-model.number="model.factor"
+                    required
+                  />
                   <div class="ui label">Luminance<sup>2</sup></div>
                 </div>
-                <div class="ui label">+</div>
+                <span>+</span>
                 &nbsp;
                 <div class="ui input">
-                  <input type="number" step="0.01" min="-100" max="100" v-model.number="model.shift" required>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="-100"
+                    max="100"
+                    v-model.number="model.shift"
+                    required
+                  />
                 </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Target Contrast Ratio</label>
+              <div class="ui input">
+                <input
+                  type="number"
+                  step="0.1"
+                  min="1"
+                  max="21"
+                  v-model.number="model.contrast"
+                  required
+                />
               </div>
             </div>
           </div>
@@ -43,13 +78,25 @@
           <table class="ui celled table">
             <tr>
               <td></td>
-              <td v-for="(offset, index) in model.offsets" :key="index">
+              <td v-for="(level, index) in model.levels" :key="index">
                 <div class="field">
                   <label>Luminance {{ index }}</label>
-                  <input type="number" step="1" min="-100" max="100" v-model.number="offset.offset"/>
+                  <input
+                    type="number"
+                    step="1"
+                    min="-100"
+                    max="100"
+                    v-model.number="level.offset"
+                  />
+                </div>
+
+                <div class="ui checkbox">
+                  <input type="checkbox" v-model="level.whiteText">
+                  <label>White Text</label>
                 </div>
               </td>
             </tr>
+
             <tr v-for="(color, index) in model.colors" :key="index" class="top aligned">
               <td>
                 <div class="field">
@@ -59,7 +106,14 @@
 
                 <div class="field">
                   <label>Hue</label>
-                  <input type="number" step="1" min="0" max="360" v-model.number="color.hue" required>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    max="360"
+                    v-model.number="color.hue"
+                    required
+                  />
                 </div>
 
                 <div class="ui checkbox">
@@ -68,19 +122,24 @@
                 </div>
               </td>
 
-              <td v-for="(step, index2) in swatches[index]" :key="index2">
-                <template v-if="step">
+              <td
+                v-for="(swatch, index2) in swatches[index]"
+                :key="index2"
+                :class="{ negative: swatch.contrast < model.contrast }"
+              >
+                <template v-if="swatch">
                   <div
                     class="color-box"
-                    :style="getBoxStyle(step)"
-                    :data-name="step.name"
+                    :style="getBoxStyle(swatch)"
                   >
+                    <span class="color-name" title="Color Variant Name">{{ swatch.name }}</span>
+                    <span class="color-contrast" title="Contrast Ratio">{{ `${swatch.contrast}:1` }}</span>
                   </div>
 
                   <div class="color-meta">
-                    <div>{{ step.toHexString() }}</div>
-                    <div>{{ step.toRgbString() }}</div>
-                    <div>{{ step.toHslString() }}</div>
+                    <div>{{ swatch.toHexString() }}</div>
+                    <div>{{ swatch.toRgbString() }}</div>
+                    <div>{{ swatch.toHslString() }}</div>
                   </div>
                 </template>
               </td>
@@ -101,7 +160,12 @@
 <script>
 import tinycolor from 'tinycolor2';
 
-const offsets = [44, 40, 36, 27, 18, 9, 0, -9, -18, -27].map(e => ({ offset: e }));
+const offsets = [44, 40, 36, 27, 18, 9, 0, -9, -18, -27];
+const levels = offsets.map((offset, index) => ({
+  offset,
+  whiteText: index >= 6,
+}));
+
 const defaults = {
   red: 360,
   pink: 339,
@@ -119,13 +183,11 @@ const defaults = {
 };
 
 const colors = Object.keys(defaults)
-  .map((e) => {
-    return {
-      name: e,
-      hue: defaults[e],
-      grayscale: e === 'gray',
-    };
-  });
+  .map(e => ({
+    name: e,
+    hue: defaults[e],
+    grayscale: e === 'gray',
+  }));
 
 export default {
   name: 'ColorWizard',
@@ -135,7 +197,8 @@ export default {
         luminance: 55,
         factor: 2.8,
         shift: 0,
-        offsets,
+        contrast: 4.5,
+        levels,
         colors,
       },
     };
@@ -147,9 +210,10 @@ export default {
         const minmax = val => Math.max(Math.min(val, 0.99), 0.01);
         const calcSaturation = y => y * y * this.model.factor + this.model.shift;
 
-        return Object.keys(this.model.offsets)
+        return Object.keys(this.model.levels)
           .map((i) => {
-            const luminance = minmax((this.model.luminance + this.model.offsets[i].offset) / 100);
+            const level = this.model.levels[i];
+            const luminance = minmax((this.model.luminance + level.offset) / 100);
             const saturation = minmax(calcSaturation(luminance));
 
             const swatch = tinycolor({
@@ -163,6 +227,9 @@ export default {
             }
 
             swatch.name = `${color.name}-${i}`;
+            swatch.offset = level.offset;
+            swatch.text = level.whiteText ? '#ffffff' : '#000000';
+            swatch.contrast = this.calcContrast(tinycolor(swatch.text), swatch);
 
             return swatch;
           });
@@ -171,8 +238,6 @@ export default {
 
     cssVars() {
       return this.swatches.reduce((result, el) => {
-        console.log(result, el);
-
         const vars = el.map((e) => {
           const hsl = e.toHslString();
 
@@ -187,10 +252,10 @@ export default {
   },
 
   methods: {
-    getBoxStyle(color) {
+    getBoxStyle(swatch) {
       return {
-        backgroundColor: color.toHslString(),
-        color: color.isDark() ? 'white' : 'black',
+        backgroundColor: swatch.toHslString(),
+        color: swatch.text,
       };
     },
 
@@ -199,6 +264,29 @@ export default {
         name: 'other',
         hue: Math.floor(Math.random() * Math.floor(360)),
       });
+    },
+
+    calcContrast(foreground, background) {
+      // https://www.w3.org/TR/WCAG20-TECHS/G18.html
+      const relBrightness = (light) => {
+        const sRgb = light / 255;
+        if (sRgb <= 0.03928) {
+          return sRgb / 12.92;
+        }
+
+        return ((sRgb + 0.055) / 1.055) ** 2.4;
+      };
+
+      const relLuminance = rgb => (
+        0.2126 * relBrightness(rgb.r)
+        + 0.7152 * relBrightness(rgb.g)
+        + 0.0722 * relBrightness(rgb.b)
+      );
+
+      const fRL = relLuminance(foreground.toRgb());
+      const bRL = relLuminance(background.toRgb());
+
+      return ((Math.max(fRL, bRL) + 0.05) / (Math.min(fRL, bRL) + 0.05)).toFixed(2);
     },
   },
 };
@@ -216,13 +304,18 @@ export default {
     font-weight: bold;
   }
 
-  .color-box:after {
-    content: attr(data-name);
+  .color-name,
+  .color-contrast {
     position: absolute;
     top: 0;
     right: 0;
     margin: 4px 8px;
     font-size: 12px;
+  }
+
+  .color-contrast {
+    top: auto;
+    bottom: 0;
   }
 
   .color-meta {
