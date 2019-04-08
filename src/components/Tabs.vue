@@ -27,7 +27,7 @@ export default {
     },
   },
   data() {
-    const selected = this.tabs.find((tab) => tab.selected);
+    const selected = this.tabs.find(tab => tab.selected);
 
     return {
       selected: selected ? selected.id : this.tabs[0].id,

@@ -9,7 +9,8 @@
     </div>
 
     <div slot="json">
-      <vue-code-highlight language="javascript">module.exports = {{ JSON.stringify(json, undefined, 2) }}
+      <vue-code-highlight language="javascript">
+        module.exports = {{ JSON.stringify(json, undefined, 2) }}
       </vue-code-highlight>
     </div>
   </Tabs>
