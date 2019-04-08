@@ -107,7 +107,12 @@
                 </div>
 
                 <div class="field">
-                  <button class="mini ui button basic" @click.prevent="removeLevel(index)">Remove</button>
+                  <button
+                    class="mini ui button basic"
+                    @click.prevent="removeLevel(index)"
+                  >
+                    Remove
+                  </button>
                 </div>
               </td>
             </tr>
@@ -139,7 +144,11 @@
                 </div>
 
                 <div class="field">
-                  <button class="mini ui button basic" @click.prevent="removeColor(index)">Remove</button>
+                  <button
+                    class="mini ui button basic"
+                    @click.prevent="removeColor(index)"
+                  >Remove
+                  </button>
                 </div>
               </td>
 
@@ -153,8 +162,13 @@
                     class="color-box"
                     :style="getBoxStyle(swatch)"
                   >
-                    <span class="color-name" title="Color Variant Name">{{ swatch.name }}</span>
-                    <span class="color-contrast" title="Contrast Ratio">{{ `${swatch.contrast}:1` }}</span>
+                    <span class="color-name" title="Color Variant Name">
+                      {{ swatch.name }}
+                    </span>
+
+                    <span class="color-contrast" title="Contrast Ratio">
+                      {{ `${swatch.contrast}:1` }}
+                    </span>
                   </div>
 
                   <div class="color-meta">
@@ -174,13 +188,14 @@
     </form>
 
     <div class="ui instructive bottom attached segment">
-      <pre><code class="code css">:root { {{ cssVars.join('\n') }} }</code></pre>
+      <ColorCode :swatches="swatches"/>
     </div>
   </div>
 </template>
 
 <script>
 import tinycolor from 'tinycolor2';
+import ColorCode from './ColorCode.vue';
 
 const offsets = [44, 40, 36, 27, 18, 9, 0, -9, -18, -27];
 const levels = offsets.map((offset, index) => ({
@@ -213,6 +228,7 @@ const colors = Object.keys(defaults)
 
 export default {
   name: 'ColorWizard',
+  components: { ColorCode },
   data() {
     return {
       model: {
@@ -256,20 +272,6 @@ export default {
             return swatch;
           });
       });
-    },
-
-    cssVars() {
-      return this.swatches.reduce((result, el) => {
-        const vars = el.map((e) => {
-          const hsl = e.toHslString();
-
-          return `--${e.name}: ${hsl};`;
-        });
-
-        result.push(...vars);
-
-        return result;
-      }, []);
     },
   },
 

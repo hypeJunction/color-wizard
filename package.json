@@ -12,7 +12,8 @@
   "dependencies": {
     "core-js": "^2.6.5",
     "tinycolor2": "^1.4.1",
-    "vue": "^2.6.6"
+    "vue": "^2.6.6",
+    "vue-code-highlight": "^0.7.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.5.0",
