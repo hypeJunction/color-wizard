@@ -224,7 +224,6 @@ const levels = offsets.map((offset, index) => ({
 }));
 
 const defaults = {
-  grey: 0,
   red: 360,
   pink: 339,
   grape: 288,
@@ -237,6 +236,7 @@ const defaults = {
   lime: 85,
   yellow: 39,
   orange: 24,
+  grey: 0,
 };
 
 const colors = Object.keys(defaults)
