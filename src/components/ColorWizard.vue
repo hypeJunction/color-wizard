@@ -17,12 +17,14 @@
       </div>
     </div>
 
-    <form class="ui form">
+    <form class="ui form mini">
       <div class="ui stackable grid padded">
         <div class="two wide column">
           <div class="field">
             <label>Base luminance</label>
-            <div class="ui input">
+
+            <div class="ui left action input">
+              <div class="ui basic button">L<sub>6</sub></div>
               <input
                 type="number"
                 step="1"
@@ -36,42 +38,39 @@
 
           <div class="field">
             <label>Saturation</label>
-            <div class="field inline">
-              <div class="ui input">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="-100"
-                  max="100"
-                  v-model.number="model.factor"
-                  required
-                />
-              </div>
-              <span>x Luminance<sup>2</sup></span>&nbsp;<span>+</span>
 
-              <div class="ui input">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="-100"
-                  max="100"
-                  v-model.number="model.adjust"
-                  required
-                />
-              </div>
-
-              <span>x Luminance</span>&nbsp;<span>+</span>
-                                                  &nbsp;
-              <div class="ui input">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="-100"
-                  max="100"
-                  v-model.number="model.shift"
-                  required
-                />
-              </div>
+            <div class="ui left action input">
+              <div class="ui basic button">a</div>
+              <input
+                type="number"
+                step="0.01"
+                min="-100"
+                max="100"
+                v-model.number="model.factor"
+                required
+              />
+            </div>
+            <div class="ui left action input">
+              <div class="ui basic button">b</div>
+              <input
+                type="number"
+                step="0.01"
+                min="-100"
+                max="100"
+                v-model.number="model.adjust"
+                required
+              />
+            </div>
+            <div class="ui left action input">
+              <div class="ui basic button">c</div>
+              <input
+                type="number"
+                step="0.01"
+                min="-100"
+                max="100"
+                v-model.number="model.shift"
+                required
+              />
             </div>
           </div>
 
@@ -91,6 +90,7 @@
         </div>
 
         <div class="four wide column">
+          <h3 class="ui center aligned header">S = a <small>x</small> L<sup>2</sup> <small>+</small> b <small>x</small> L <small>+</small> c</h3>
           <color-chart :chart-data="chartData" :options="chartOptions"/>
         </div>
 
@@ -217,8 +217,6 @@
                     <div>{{ swatch.toRgbString() }}</div>
                     <div>{{ swatch.toHslString() }}</div>
                   </div>
-
-                  <div class="ui divider"></div>
 
                   <div class="field">
                     <label>L Offset</label>
@@ -452,7 +450,7 @@ export default {
     position: relative;
     min-width: 100px;
     width: 100%;
-    height: 150px;
+    height: 100px;
     display: block;
     border-radius: 4px;
     text-align: center;
@@ -480,7 +478,7 @@ export default {
   }
 
   .color-meta {
-    margin-top: 8px;
+    margin: 8px 0;
     white-space: nowrap;
     font-size: 12px;
     line-height: normal;
