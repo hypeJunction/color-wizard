@@ -9,6 +9,9 @@
         <p>
           Systematic palette generator uses a parabolic formula to autofill
           color saturation for various intervals, given color hue and luminance.
+        </p>
+
+        <p>
           Each color swatch also shows you the color contrast against black/white text.
           WCAG 2.0 specification requires color contrast of at least 4.5:1 for texts
           under 18pt (24px) for a contrast to be considered accessible for people
@@ -31,6 +34,22 @@
                 min="0"
                 max="100"
                 v-model.number="model.luminance"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Preview Hue</label>
+
+            <div class="ui left labeled input">
+              <div class="ui label" title="Hue for chart preview">H<sup>&deg;</sup></div>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                max="360"
+                v-model.number="model.hue"
                 required
               />
             </div>
@@ -70,7 +89,7 @@
                 step="0.01"
                 min="-100"
                 max="100"
-                v-model.number="model.shift"
+                v-model.number="model.shiftS"
                 required
               />
             </div>
@@ -89,18 +108,41 @@
               />
             </div>
           </div>
+
+          <div class="field">
+            <label>Dark Text</label>
+            <div class="ui input color">
+              <input
+                type="color"
+                v-model.number="model.dark"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Light Text</label>
+            <div class="ui input color">
+              <input
+                type="color"
+                v-model.number="model.light"
+                required
+              />
+            </div>
+          </div>
         </div>
 
         <div class="four wide column">
-          <h3 class="ui center aligned header">S = a
+          <h3 class="ui center aligned header">
+            S = a
             <small>x</small>
-                                               L<sup>2</sup>
+            L<sup>2</sup>
             <small>+</small>
-                                               b
+            b
             <small>x</small>
-                                               L
+            L
             <small>+</small>
-                                               c
+            c
           </h3>
           <color-chart :chart-data="chartData" :options="chartOptions"/>
         </div>
@@ -112,13 +154,12 @@
                 v-for="(swatch, index2) in swatches[index]"
                 :key="index2"
               >
-                <template v-if="swatch">
-                  <div
-                    class="color-box small"
-                    :style="getBoxStyle(swatch)"
-                  >
-                  </div>
-                </template>
+                <div
+                  class="color-box small"
+                  :class="{ negative: swatch.contrast < model.contrast }"
+                  :style="getBoxStyle(swatch)"
+                >
+                </div>
               </div>
             </div>
           </div>
@@ -142,7 +183,10 @@
               <td v-for="(level, index) in model.levels" :key="index">
                 <div class="field">
                   <div class="ui left labeled input">
-                    <div class="ui label" title="Luminance offset from Base Luminance">L<sub>d</sub></div>
+                    <div
+                      class="ui label"
+                      title="Luminance offset from Base Luminance"
+                    >L<sub>d</sub></div>
                     <input
                       type="number"
                       step="1"
@@ -155,8 +199,8 @@
 
                 <div class="field">
                   <div class="ui checkbox">
-                    <input type="checkbox" v-model="level.whiteText">
-                    <label>White Text</label>
+                    <input type="checkbox" v-model="level.lightText">
+                    <label>Light Text</label>
                   </div>
                 </div>
 
@@ -195,9 +239,30 @@
                 </div>
 
                 <div class="field">
-                  <div class="ui checkbox">
-                    <input type="checkbox" v-model="color.greyscale">
-                    <label>Grayscale</label>
+                  <div class="ui left labeled input">
+                    <div class="ui label" title="Saturation Offset">S<sub>d</sub></div>
+                    <input
+                      type="number"
+                      step="1"
+                      min="-100"
+                      max="100"
+                      v-model.number="color.saturationOffset"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="field">
+                  <div class="ui left labeled input">
+                    <div class="ui label" title="Luminance Offset">L<sub>d</sub></div>
+                    <input
+                      type="number"
+                      step="1"
+                      min="-100"
+                      max="100"
+                      v-model.number="color.luminanceOffset"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -215,39 +280,40 @@
                 :key="index2"
                 :class="{ negative: swatch.contrast < model.contrast }"
               >
-                <template v-if="swatch">
-                  <div
-                    class="color-box"
-                    :style="getBoxStyle(swatch)"
-                  >
+                <div
+                  class="color-box"
+                  :style="getBoxStyle(swatch)"
+                >
                     <span class="color-name" title="Color Variant Name">
                       {{ swatch.name }}
                     </span>
 
-                    <span class="color-contrast" title="Contrast Ratio">
+                  <span class="color-contrast" title="Contrast Ratio">
                       {{ `${swatch.contrast}:1` }}
                     </span>
-                  </div>
+                </div>
 
-                  <div class="color-meta">
-                    <div>{{ swatch.toHexString() }}</div>
-                    <div>{{ swatch.toRgbString() }}</div>
-                    <div>{{ swatch.toHslString() }}</div>
-                  </div>
+                <div class="color-meta">
+                  <div>{{ swatch.toHexString() }}</div>
+                  <div>{{ swatch.toRgbString() }}</div>
+                  <div>{{ swatch.toHslString() }}</div>
+                </div>
 
-                  <div class="field">
-                    <div class="ui left labeled input">
-                      <div class="ui label" title="Luminance offset from Level Luminance">L<sub>d</sub></div>
-                      <input
-                        type="number"
-                        step="1"
-                        min="-50"
-                        max="50"
-                        v-model.number="color.levels[index2].offset"
-                      />
-                    </div>
+                <div class="field">
+                  <div class="ui left labeled input">
+                    <div
+                      class="ui label"
+                      title="Luminance offset from Level Luminance"
+                    >L<sub>d</sub></div>
+                    <input
+                      type="number"
+                      step="1"
+                      min="-50"
+                      max="50"
+                      v-model.number="color.levels[index2].offset"
+                    />
                   </div>
-                </template>
+                </div>
               </td>
             </tr>
             </tbody>
@@ -272,7 +338,7 @@ import ColorChart from './ColorChart.vue';
 const offsets = [44, 40, 36, 27, 18, 9, 0, -9, -18, -27];
 const levels = offsets.map((offset, index) => ({
   offset,
-  whiteText: index >= 6,
+  lightText: index >= 6,
 }));
 
 const defaults = {
@@ -295,7 +361,8 @@ const colors = Object.keys(defaults)
   .map(e => ({
     name: e,
     hue: defaults[e],
-    greyscale: e === 'grey',
+    saturationOffset: e === 'grey' ? -100 : 0,
+    luminanceOffset: 0,
     levels: offsets.map(() => ({
       offset: 0,
     })),
@@ -310,11 +377,14 @@ export default {
   data() {
     return {
       model: {
-        luminance: 46,
-        factor: 0.15,
-        shift: 0.8,
+        luminance: 50,
+        hue: 0,
+        factor: 0,
         adjust: 0,
+        shiftS: 0.8,
         contrast: 4.5,
+        light: '#ffffff',
+        dark: '#000000',
         levels,
         colors,
       },
@@ -323,49 +393,38 @@ export default {
 
   computed: {
     swatches() {
-      return this.model.colors.map((color) => {
-        const minmax = val => Math.max(Math.min(val, 0.99), 0.01);
-        const calcSaturation = y => y * y * this.model.factor + y * this.model.adjust + this.model.shift;
-
-        return Object.keys(this.model.levels)
+      return this.model.colors.map(color => (
+        Object
+          .keys(this.model.levels)
           .map((i) => {
-            const level = this.model.levels[i];
-            const colorLevel = color.levels[i];
-            const offset = level.offset + colorLevel.offset;
-            const luminance = minmax((this.model.luminance + offset) / 100);
-            const saturation = minmax(calcSaturation(luminance));
+            const luminance = this.calcLuminance(i, color);
+            const saturation = this.calcSaturation(luminance, color.hue);
+            const isLightText = this.model.levels[i].lightText;
 
             const swatch = tinycolor({
               h: color.hue || 0,
-              s: saturation,
+              s: saturation + color.saturationOffset / 100,
               l: luminance,
             });
 
-            if (color.greyscale) {
-              swatch.greyscale();
-            }
 
             swatch.name = `${color.name}-${i}`;
-            swatch.offset = offset;
-            swatch.text = level.whiteText ? '#ffffff' : '#000000';
+            swatch.text = isLightText ? this.model.light : this.model.dark;
             swatch.contrast = this.calcContrast(tinycolor(swatch.text), swatch);
 
             return swatch;
-          });
-      });
+          })
+      ));
     },
 
     chartData() {
-      const minmax = val => Math.max(Math.min(val, 1), 0);
-      const calcSaturation = y => y * y * this.model.factor + y * this.model.adjust + this.model.shift;
-
       return {
-        datasets: this.model.levels.map((level) => {
-          const luminance = minmax((level.offset + this.model.luminance) / 100);
-          const saturation = minmax(calcSaturation(luminance));
+        datasets: this.model.levels.map((level, index) => {
+          const luminance = this.calcLuminance(index);
+          const saturation = this.calcSaturation(luminance, this.model.hue);
 
           return {
-            backgroundColor: `hsla(0, ${saturation * 100}%, ${luminance * 100}%, 1)`,
+            backgroundColor: `hsla(${this.model.hue}, ${saturation * 100}%, ${luminance * 100}%, 1)`,
             borderColor: 'transparent',
             fill: false,
             pointRadius: 5,
@@ -424,7 +483,7 @@ export default {
       this.model.colors.push({
         name: 'other',
         hue: Math.floor(Math.random() * Math.floor(360)),
-        greyscale: false,
+        saturationOffset: 0,
         levels: this.model.levels.map(() => ({ offset: 0 })),
       });
     },
@@ -436,6 +495,27 @@ export default {
     removeLevel(index) {
       this.model.levels.splice(index, 1);
       this.model.colors.forEach(color => color.levels.splice(index, 1));
+    },
+
+    minmax(val) {
+      return Math.max(Math.min(val, 0.99), 0.01);
+    },
+
+    calcLuminance(levelIndex, color = null) {
+      const colorOffset = color ? color.levels[levelIndex].offset + color.luminanceOffset : 0;
+      const offset = this.model.levels[levelIndex].offset + colorOffset;
+
+      const luminance = this.model.luminance + offset;
+
+      return this.minmax(luminance / 100);
+    },
+
+    calcSaturation(luminance) {
+      const saturation = (luminance ** 2) * this.model.factor
+        + luminance * this.model.adjust
+        + this.model.shiftS;
+
+      return this.minmax(saturation);
     },
 
     calcContrast(foreground, background) {
@@ -482,6 +562,12 @@ export default {
     border-radius: 0;
   }
 
+  .color-box.small.negative:after {
+    content: "\00d7";
+    font-size: 16px;
+    line-height: 32px;
+  }
+
   .color-name,
   .color-contrast {
     position: absolute;
@@ -513,5 +599,9 @@ export default {
 
   .ui.form.mini .ui.checkbox label {
     font-size: 0.8em;
+  }
+
+  .ui.input.color > input {
+    padding: 0;
   }
 </style>
