@@ -18,8 +18,8 @@
     </div>
 
     <form class="ui form">
-      <div class="ui grid padded">
-        <div class="four wide column">
+      <div class="ui stackable grid padded">
+        <div class="two wide column">
           <div class="field">
             <label>Base luminance</label>
             <div class="ui input">
@@ -89,11 +89,12 @@
             </div>
           </div>
         </div>
+
         <div class="four wide column">
           <color-chart :chart-data="chartData" :options="chartOptions"/>
         </div>
 
-        <div class="eight wide column">
+        <div class="ten wide column">
           <div class="palette">
             <div v-for="(color, index) in model.colors" :key="index">
               <div
