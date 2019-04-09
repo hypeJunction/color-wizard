@@ -23,8 +23,8 @@
           <div class="field">
             <label>Base luminance</label>
 
-            <div class="ui left action input">
-              <div class="ui basic button">L<sub>6</sub></div>
+            <div class="ui left labeled input">
+              <div class="ui label" title="Luminance at Level 6">L<sub>6</sub></div>
               <input
                 type="number"
                 step="1"
@@ -39,8 +39,8 @@
           <div class="field">
             <label>Saturation</label>
 
-            <div class="ui left action input">
-              <div class="ui basic button">a</div>
+            <div class="ui left labeled input">
+              <div class="ui label">a</div>
               <input
                 type="number"
                 step="0.01"
@@ -50,8 +50,9 @@
                 required
               />
             </div>
-            <div class="ui left action input">
-              <div class="ui basic button">b</div>
+
+            <div class="ui left labeled input">
+              <div class="ui label">b</div>
               <input
                 type="number"
                 step="0.01"
@@ -61,8 +62,9 @@
                 required
               />
             </div>
-            <div class="ui left action input">
-              <div class="ui basic button">c</div>
+
+            <div class="ui left labeled input">
+              <div class="ui label">c</div>
               <input
                 type="number"
                 step="0.01"
@@ -90,7 +92,16 @@
         </div>
 
         <div class="four wide column">
-          <h3 class="ui center aligned header">S = a <small>x</small> L<sup>2</sup> <small>+</small> b <small>x</small> L <small>+</small> c</h3>
+          <h3 class="ui center aligned header">S = a
+            <small>x</small>
+                                               L<sup>2</sup>
+            <small>+</small>
+                                               b
+            <small>x</small>
+                                               L
+            <small>+</small>
+                                               c
+          </h3>
           <color-chart :chart-data="chartData" :options="chartOptions"/>
         </div>
 
@@ -130,14 +141,16 @@
               <td></td>
               <td v-for="(level, index) in model.levels" :key="index">
                 <div class="field">
-                  <label>L Offset</label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="-100"
-                    max="100"
-                    v-model.number="level.offset"
-                  />
+                  <div class="ui left labeled input">
+                    <div class="ui label" title="Luminance offset from Base Luminance">L<sub>d</sub></div>
+                    <input
+                      type="number"
+                      step="1"
+                      min="-100"
+                      max="100"
+                      v-model.number="level.offset"
+                    />
+                  </div>
                 </div>
 
                 <div class="field">
@@ -161,20 +174,24 @@
             <tr v-for="(color, index) in model.colors" :key="index" class="top aligned">
               <td>
                 <div class="field">
-                  <label>Name</label>
-                  <input type="text" placeholder="Hue Name" v-model="color.name" required>
+                  <div class="ui left labeled input">
+                    <div class="ui label" title="Color Variable Name">$</div>
+                    <input type="text" v-model="color.name" required>
+                  </div>
                 </div>
 
                 <div class="field">
-                  <label>Hue</label>
-                  <input
-                    type="number"
-                    step="1"
-                    min="0"
-                    max="360"
-                    v-model.number="color.hue"
-                    required
-                  />
+                  <div class="ui left labeled input">
+                    <div class="ui label" title="Hue">H<sup>&deg;</sup></div>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="360"
+                      v-model.number="color.hue"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div class="field">
@@ -219,14 +236,16 @@
                   </div>
 
                   <div class="field">
-                    <label>L Offset</label>
-                    <input
-                      type="number"
-                      step="1"
-                      min="-50"
-                      max="50"
-                      v-model.number="color.levels[index2].offset"
-                    />
+                    <div class="ui left labeled input">
+                      <div class="ui label" title="Luminance offset from Level Luminance">L<sub>d</sub></div>
+                      <input
+                        type="number"
+                        step="1"
+                        min="-50"
+                        max="50"
+                        v-model.number="color.levels[index2].offset"
+                      />
+                    </div>
                   </div>
                 </template>
               </td>
@@ -490,5 +509,9 @@ export default {
 
   .palette {
     display: flex;
+  }
+
+  .ui.form.mini .ui.checkbox label {
+    font-size: 0.8em;
   }
 </style>
