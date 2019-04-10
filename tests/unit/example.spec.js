@@ -20,17 +20,22 @@ describe('ColorWizard.vue', () => {
       model: {
         luminance: 60,
         factor: 2.2,
-        shift: -0.2,
+        adjust: 0,
+        shiftS: -0.2,
         contrast: 4.5,
+        light: '#ffffff',
+        dark: '#000000',
         levels: [{
           offset: -10,
-          whiteText: false,
+          lightText: false,
         }],
         colors: [{
           name: 'test',
           hue: 5,
-          grayscale: false,
+          greyscale: false,
           levels: [{ offset: 0 }],
+          saturationOffset: 0,
+          luminanceOffset: 0,
         }],
       },
     });
@@ -50,9 +55,7 @@ describe('ColorWizard.vue', () => {
     expect(swatch.name)
       .to
       .equals('test-0');
-    expect(swatch.offset)
-      .to
-      .equals(-10);
+
     expect(swatch.text)
       .to
       .equals('#000000');
@@ -90,5 +93,45 @@ describe('ColorWizard.vue', () => {
         .to
         .equal(test[2]);
     });
+  });
+
+  it('adds color', () => {
+    const { vm } = wrapper;
+
+    vm.addColor();
+
+    const { swatches } = vm;
+
+    expect(swatches.length)
+      .to
+      .equal(14);
+
+    expect(swatches[0].length)
+      .to
+      .equal(10);
+
+    const swatch = swatches[13][0];
+
+    expect(swatch.name)
+      .to
+      .equals('other-0');
+
+    expect(swatch.text)
+      .to
+      .equals('#000000');
+
+    const hsl = tinycolor(
+      {
+        h: swatch.baseColor.hue,
+        s: 0.8,
+        l: 0.94,
+        a: 1,
+      },
+    )
+      .toHsl();
+
+    expect(swatch.toHsl())
+      .to
+      .eql(hsl);
   });
 });

@@ -411,6 +411,7 @@ export default {
             swatch.name = `${color.name}-${i}`;
             swatch.text = isLightText ? this.model.light : this.model.dark;
             swatch.contrast = this.calcContrast(tinycolor(swatch.text), swatch);
+            swatch.baseColor = color;
 
             return swatch;
           })
@@ -484,6 +485,7 @@ export default {
         name: 'other',
         hue: Math.floor(Math.random() * Math.floor(360)),
         saturationOffset: 0,
+        luminanceOffset: 0,
         levels: this.model.levels.map(() => ({ offset: 0 })),
       });
     },
