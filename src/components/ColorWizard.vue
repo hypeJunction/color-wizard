@@ -363,12 +363,20 @@ interface Swatch extends TinycolorInstance {
   baseColor: ColorDefinition;
 }
 
+type FormulaType = 'parabolic' | 'linear' | 'constant' | 'sinusoidal' | 'exponential' | 'power' | 'gaussian' | 'sigmoid' | 'logarithmic' | 'cubic' | 'inverse';
+
+interface FormulaParams {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+}
+
 interface Model {
   luminance: number;
   hue: number;
-  factor: number;
-  adjust: number;
-  shiftS: number;
+  formulaType: FormulaType;
+  formulaParams: FormulaParams;
   contrast: number;
   light: string;
   dark: string;
@@ -429,9 +437,8 @@ const createColors = (): ColorDefinition[] => Object.keys(defaults).map((name) =
 const model = reactive<Model>({
   luminance: 50,
   hue: 0,
-  factor: 0,
-  adjust: 0,
-  shiftS: 0.8,
+  formulaType: 'parabolic',
+  formulaParams: { a: 0, b: 0, c: 0.8, d: 0 },
   contrast: 4.5,
   light: '#ffffff',
   dark: '#000000',
@@ -442,20 +449,28 @@ const model = reactive<Model>({
 const settingsModel = computed(() => ({
   luminance: model.luminance,
   hue: model.hue,
-  factor: model.factor,
-  adjust: model.adjust,
-  shiftS: model.shiftS,
+  formulaType: model.formulaType,
+  formulaParams: { ...model.formulaParams },
   contrast: model.contrast,
   light: model.light,
   dark: model.dark,
 }));
 
-const updateModel = (newModel: { luminance: number; hue: number; factor: number; adjust: number; shiftS: number; contrast: number; light: string; dark: string }) => {
+interface SettingsModel {
+  luminance: number;
+  hue: number;
+  formulaType: FormulaType;
+  formulaParams: FormulaParams;
+  contrast: number;
+  light: string;
+  dark: string;
+}
+
+const updateModel = (newModel: SettingsModel) => {
   model.luminance = newModel.luminance;
   model.hue = newModel.hue;
-  model.factor = newModel.factor;
-  model.adjust = newModel.adjust;
-  model.shiftS = newModel.shiftS;
+  model.formulaType = newModel.formulaType;
+  model.formulaParams = { ...newModel.formulaParams };
   model.contrast = newModel.contrast;
   model.light = newModel.light;
   model.dark = newModel.dark;
@@ -471,9 +486,58 @@ const calcLuminance = (levelIndex: number, color: ColorDefinition | null = null)
 };
 
 const calcSaturation = (luminance: number): number => {
-  const saturation = (luminance ** 2) * model.factor
-    + luminance * model.adjust
-    + model.shiftS;
+  const { a, b, c, d } = model.formulaParams;
+  let saturation: number;
+
+  switch (model.formulaType) {
+    case 'parabolic':
+      // S = aL² + bL + c
+      saturation = a * (luminance ** 2) + b * luminance + c;
+      break;
+    case 'linear':
+      // S = aL + b
+      saturation = a * luminance + b;
+      break;
+    case 'constant':
+      // S = c
+      saturation = c;
+      break;
+    case 'sinusoidal':
+      // S = a × sin(bL + c) + d
+      saturation = a * Math.sin(b * luminance + c) + d;
+      break;
+    case 'exponential':
+      // S = a × e^(bL) + c
+      saturation = a * Math.exp(b * luminance) + c;
+      break;
+    case 'power':
+      // S = a × L^b + c
+      saturation = a * (luminance ** b) + c;
+      break;
+    case 'gaussian':
+      // S = a × e^(-(L-b)²/c²) + d - bell curve peaking at L=b
+      saturation = a * Math.exp(-((luminance - b) ** 2) / (c ** 2)) + d;
+      break;
+    case 'sigmoid':
+      // S = a / (1 + e^(-b(L-c))) + d - smooth S-curve
+      saturation = a / (1 + Math.exp(-b * (luminance - c))) + d;
+      break;
+    case 'logarithmic':
+      // S = a × ln(bL + 1) + c - rapid initial change
+      saturation = a * Math.log(b * luminance + 1) + c;
+      break;
+    case 'cubic':
+      // S = aL³ + bL² + cL + d
+      saturation = a * (luminance ** 3) + b * (luminance ** 2) + c * luminance + d;
+      break;
+    case 'inverse':
+      // S = a / (L + b) + c - hyperbolic decay
+      saturation = a / (luminance + b) + c;
+      break;
+    default:
+      saturation = c;
+  }
+
   return minmax(saturation);
 };
 

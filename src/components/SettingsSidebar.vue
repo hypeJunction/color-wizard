@@ -11,8 +11,24 @@
     </div>
 
     <div class="sidebar-body">
+      <div class="field formula-selector">
+        <select
+          :value="model.formulaType"
+          class="ui dropdown"
+          @change="handleFormulaChange"
+        >
+          <option
+            v-for="option in formulaOptions"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
       <div class="formula-display">
-        S = a × L² + b × L + c
+        {{ currentFormula.display }}
       </div>
 
       <div class="chart-section">
@@ -62,39 +78,31 @@
         </div>
 
         <div class="field">
-          <label>Saturation Coefficients</label>
-          <div class="coefficients-row">
-            <div class="ui left labeled input">
-              <div class="ui label">a</div>
-              <input
-                :value="model.factor"
-                type="number"
-                step="0.01"
-                min="-100"
-                max="100"
-                @input="$emit('update:model', { ...model, factor: Number(($event.target as HTMLInputElement).value) })"
+          <label>Formula Parameters</label>
+          <div
+            v-for="(row, rowIndex) in paramRows"
+            :key="rowIndex"
+            class="coefficients-row"
+            :class="{ 'coefficients-row-extra': rowIndex > 0 }"
+          >
+            <div
+              v-for="param in row"
+              :key="param.key"
+              class="ui left labeled input"
+            >
+              <div
+                class="ui label"
+                :title="param.title"
               >
-            </div>
-            <div class="ui left labeled input">
-              <div class="ui label">b</div>
+                {{ param.label }}
+              </div>
               <input
-                :value="model.adjust"
+                :value="model.formulaParams[param.key]"
                 type="number"
                 step="0.01"
                 min="-100"
                 max="100"
-                @input="$emit('update:model', { ...model, adjust: Number(($event.target as HTMLInputElement).value) })"
-              >
-            </div>
-            <div class="ui left labeled input">
-              <div class="ui label">c</div>
-              <input
-                :value="model.shiftS"
-                type="number"
-                step="0.01"
-                min="-100"
-                max="100"
-                @input="$emit('update:model', { ...model, shiftS: Number(($event.target as HTMLInputElement).value) })"
+                @input="updateParam(param.key, Number(($event.target as HTMLInputElement).value))"
               >
             </div>
           </div>
@@ -147,29 +155,201 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { ChartData, ChartOptions } from 'chart.js';
 import ColorChart from './ColorChart.vue';
+
+type FormulaType = 'parabolic' | 'linear' | 'constant' | 'sinusoidal' | 'exponential' | 'power' | 'gaussian' | 'sigmoid' | 'logarithmic' | 'cubic' | 'inverse';
+
+interface FormulaParams {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+}
 
 interface Model {
   luminance: number;
   hue: number;
-  factor: number;
-  adjust: number;
-  shiftS: number;
+  formulaType: FormulaType;
+  formulaParams: FormulaParams;
   contrast: number;
   light: string;
   dark: string;
 }
 
-defineProps<{
+interface FormulaDefinition {
+  label: string;
+  display: string;
+  params: Array<{ key: keyof FormulaParams; label: string; title: string }>;
+  defaults: FormulaParams;
+}
+
+const formulaDefinitions: Record<FormulaType, FormulaDefinition> = {
+  parabolic: {
+    label: 'Parabolic',
+    display: 'S = aL² + bL + c',
+    params: [
+      { key: 'a', label: 'a', title: 'Quadratic coefficient' },
+      { key: 'b', label: 'b', title: 'Linear coefficient' },
+      { key: 'c', label: 'c', title: 'Constant term' },
+    ],
+    defaults: { a: 0, b: 0, c: 0.8, d: 0 },
+  },
+  linear: {
+    label: 'Linear',
+    display: 'S = aL + b',
+    params: [
+      { key: 'a', label: 'a', title: 'Slope' },
+      { key: 'b', label: 'b', title: 'Intercept' },
+    ],
+    defaults: { a: 0, b: 0.8, c: 0, d: 0 },
+  },
+  constant: {
+    label: 'Constant',
+    display: 'S = c',
+    params: [
+      { key: 'c', label: 'c', title: 'Constant saturation value' },
+    ],
+    defaults: { a: 0, b: 0, c: 0.8, d: 0 },
+  },
+  sinusoidal: {
+    label: 'Sinusoidal',
+    display: 'S = a×sin(bL + c) + d',
+    params: [
+      { key: 'a', label: 'a', title: 'Amplitude' },
+      { key: 'b', label: 'b', title: 'Frequency' },
+      { key: 'c', label: 'c', title: 'Phase shift' },
+      { key: 'd', label: 'd', title: 'Vertical offset' },
+    ],
+    defaults: { a: 0.3, b: Math.PI, c: 0, d: 0.5 },
+  },
+  exponential: {
+    label: 'Exponential',
+    display: 'S = a×eᵇᴸ + c',
+    params: [
+      { key: 'a', label: 'a', title: 'Scale factor' },
+      { key: 'b', label: 'b', title: 'Growth rate' },
+      { key: 'c', label: 'c', title: 'Vertical offset' },
+    ],
+    defaults: { a: 0.3, b: 1, c: 0.5, d: 0 },
+  },
+  power: {
+    label: 'Power',
+    display: 'S = aLᵇ + c',
+    params: [
+      { key: 'a', label: 'a', title: 'Scale factor' },
+      { key: 'b', label: 'b', title: 'Exponent' },
+      { key: 'c', label: 'c', title: 'Vertical offset' },
+    ],
+    defaults: { a: 0.5, b: 1, c: 0.3, d: 0 },
+  },
+  gaussian: {
+    label: 'Gaussian',
+    display: 'S = a×e^(-(L-b)²/c²) + d',
+    params: [
+      { key: 'a', label: 'a', title: 'Peak height' },
+      { key: 'b', label: 'b', title: 'Peak position (luminance)' },
+      { key: 'c', label: 'c', title: 'Width (spread)' },
+      { key: 'd', label: 'd', title: 'Base offset' },
+    ],
+    defaults: { a: 0.6, b: 0.5, c: 0.3, d: 0.2 },
+  },
+  sigmoid: {
+    label: 'Sigmoid',
+    display: 'S = a/(1 + e^(-b(L-c))) + d',
+    params: [
+      { key: 'a', label: 'a', title: 'Curve height' },
+      { key: 'b', label: 'b', title: 'Steepness' },
+      { key: 'c', label: 'c', title: 'Midpoint (luminance)' },
+      { key: 'd', label: 'd', title: 'Base offset' },
+    ],
+    defaults: { a: 0.6, b: 10, c: 0.5, d: 0.2 },
+  },
+  logarithmic: {
+    label: 'Logarithmic',
+    display: 'S = a×ln(bL + 1) + c',
+    params: [
+      { key: 'a', label: 'a', title: 'Scale factor' },
+      { key: 'b', label: 'b', title: 'Input scale' },
+      { key: 'c', label: 'c', title: 'Vertical offset' },
+    ],
+    defaults: { a: 0.5, b: 2, c: 0.3, d: 0 },
+  },
+  cubic: {
+    label: 'Cubic',
+    display: 'S = aL³ + bL² + cL + d',
+    params: [
+      { key: 'a', label: 'a', title: 'Cubic coefficient' },
+      { key: 'b', label: 'b', title: 'Quadratic coefficient' },
+      { key: 'c', label: 'c', title: 'Linear coefficient' },
+      { key: 'd', label: 'd', title: 'Constant term' },
+    ],
+    defaults: { a: 0, b: 0, c: 0, d: 0.8 },
+  },
+  inverse: {
+    label: 'Inverse',
+    display: 'S = a/(L + b) + c',
+    params: [
+      { key: 'a', label: 'a', title: 'Numerator' },
+      { key: 'b', label: 'b', title: 'Denominator offset' },
+      { key: 'c', label: 'c', title: 'Vertical offset' },
+    ],
+    defaults: { a: 0.3, b: 0.5, c: 0.3, d: 0 },
+  },
+};
+
+const formulaOptions: Array<{ value: FormulaType; label: string }> = [
+  { value: 'parabolic', label: 'Parabolic' },
+  { value: 'linear', label: 'Linear' },
+  { value: 'constant', label: 'Constant' },
+  { value: 'cubic', label: 'Cubic' },
+  { value: 'power', label: 'Power' },
+  { value: 'exponential', label: 'Exponential' },
+  { value: 'logarithmic', label: 'Logarithmic' },
+  { value: 'gaussian', label: 'Gaussian' },
+  { value: 'sigmoid', label: 'Sigmoid' },
+  { value: 'sinusoidal', label: 'Sinusoidal' },
+  { value: 'inverse', label: 'Inverse' },
+];
+
+const props = defineProps<{
   model: Model;
   chartData: ChartData<'scatter'>;
   chartOptions: ChartOptions<'scatter'>;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'update:model', value: Model): void;
 }>();
+
+const currentFormula = computed(() => formulaDefinitions[props.model.formulaType]);
+
+const paramRows = computed(() => {
+  const params = currentFormula.value.params;
+  const rows: Array<typeof params> = [];
+  for (let i = 0; i < params.length; i += 2) {
+    rows.push(params.slice(i, i + 2));
+  }
+  return rows;
+});
+
+const handleFormulaChange = (event: Event) => {
+  const newType = (event.target as HTMLSelectElement).value as FormulaType;
+  const defaults = formulaDefinitions[newType].defaults;
+  emit('update:model', {
+    ...props.model,
+    formulaType: newType,
+    formulaParams: { ...defaults },
+  });
+};
+
+const updateParam = (key: keyof FormulaParams, value: number) => {
+  emit('update:model', {
+    ...props.model,
+    formulaParams: { ...props.model.formulaParams, [key]: value },
+  });
+};
 </script>
 
 <style scoped>
@@ -221,6 +401,25 @@ defineEmits<{
   padding: 0.75rem;
 }
 
+.formula-selector {
+  margin-bottom: 0.5rem;
+}
+
+.formula-selector select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.formula-selector select:focus {
+  outline: none;
+  border-color: #2185d0;
+}
+
 .formula-display {
   font-size: 1.1rem;
   font-weight: 500;
@@ -267,14 +466,33 @@ defineEmits<{
   gap: 0.4rem;
 }
 
-.two-fields-row .ui.left.labeled.input,
-.coefficients-row .ui.left.labeled.input {
+.coefficients-row {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.two-fields-row .ui.left.labeled.input {
   flex: 1;
+  min-width: 0;
+}
+
+.coefficients-row .ui.left.labeled.input {
+  flex: 0 0 auto;
+  width: calc(50% - 0.2rem);
+  max-width: calc(50% - 0.2rem);
+}
+
+.coefficients-row .ui.left.labeled.input > input {
+  width: 100% !important;
   min-width: 0;
 }
 
 .coefficients-row .ui.label {
   flex-shrink: 0;
+}
+
+.coefficients-row-extra {
+  margin-top: 0.4rem;
 }
 
 .contrast-colors-row .ui.left.labeled.input {
