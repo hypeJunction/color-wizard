@@ -253,6 +253,33 @@
 
                 <!-- Print-only layout -->
                 <div class="print-palette">
+                  <div class="print-settings">
+                    <h2 class="print-title">Color Palette</h2>
+                    <div class="print-formula">
+                      <div class="print-formula-row">
+                        <span class="print-label">Formula:</span>
+                        <span class="print-value">{{ model.formulaType }}</span>
+                      </div>
+                      <div class="print-formula-row">
+                        <span class="print-label">Parameters:</span>
+                        <span class="print-value">
+                          a={{ model.formulaParams.a }},
+                          b={{ model.formulaParams.b }},
+                          c={{ model.formulaParams.c }},
+                          d={{ model.formulaParams.d }}
+                        </span>
+                      </div>
+                      <div class="print-formula-row">
+                        <span class="print-label">Base Luminance:</span>
+                        <span class="print-value">{{ model.luminance }}%</span>
+                      </div>
+                      <div class="print-formula-row">
+                        <span class="print-label">Target Contrast:</span>
+                        <span class="print-value">{{ model.contrast }}:1</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div
                     v-for="(color, colorIndex) in model.colors"
                     :key="colorIndex"
@@ -1098,6 +1125,39 @@ defineExpose({
   /* Show print palette */
   .print-palette {
     display: block !important;
+    padding: 0.5em;
+  }
+
+  .print-settings {
+    margin-bottom: 1.5em;
+    padding-bottom: 1em;
+    border-bottom: 2px solid #333;
+  }
+
+  .print-title {
+    margin: 0 0 0.5em 0;
+    font-size: 16pt;
+    font-weight: bold;
+  }
+
+  .print-formula {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em 2em;
+    font-size: 9pt;
+  }
+
+  .print-formula-row {
+    display: flex;
+    gap: 0.3em;
+  }
+
+  .print-label {
+    color: #666;
+  }
+
+  .print-value {
+    font-weight: 500;
   }
 
   .print-color-section {
