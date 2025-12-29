@@ -266,6 +266,13 @@
         </div>
 
         <div
+          v-show="activeTab === 'tokens'"
+          class="tab-content code-tab"
+        >
+          <pre class="code-block"><code>{{ JSON.stringify(designTokens, undefined, 2) }}</code></pre>
+        </div>
+
+        <div
           v-show="activeTab === 'about'"
           class="tab-content about-content"
         >
@@ -290,7 +297,7 @@
             <li>Bulk edit HSL values across all colors</li>
             <li>Define custom number of shades and hues</li>
             <li>Real-time contrast ratio checking for accessibility</li>
-            <li>Export to CSS, SCSS, or JSON formats</li>
+            <li>Export to CSS, SCSS, JSON, or Design Tokens formats</li>
           </ul>
 
           <h3>Accessibility</h3>
@@ -382,6 +389,7 @@ const mainTabs = [
   { id: 'css', label: 'CSS' },
   { id: 'scss', label: 'SCSS' },
   { id: 'json', label: 'JSON' },
+  { id: 'tokens', label: 'Design Tokens' },
   { id: 'about', label: 'About' },
 ];
 
@@ -627,6 +635,39 @@ const json = computed(() => {
     });
     return data;
   }, {});
+});
+
+interface DesignToken {
+  $value: string;
+  $description?: string;
+}
+
+interface DesignTokenGroup {
+  $type: string;
+  [key: string]: string | { [level: string]: DesignToken };
+}
+
+const designTokens = computed(() => {
+  const tokens: { color: DesignTokenGroup } = {
+    color: {
+      $type: 'color',
+    },
+  };
+
+  swatches.value.forEach((colorSwatches) => {
+    const colorName = colorSwatches[0].baseColor.name;
+    const colorGroup: { [level: string]: DesignToken } = {};
+
+    colorSwatches.forEach((swatch, levelIndex) => {
+      colorGroup[String(levelIndex)] = {
+        $value: swatch.toHexString(),
+      };
+    });
+
+    tokens.color[colorName] = colorGroup;
+  });
+
+  return tokens;
 });
 
 // Expose for testing
