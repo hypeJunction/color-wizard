@@ -4,38 +4,29 @@
       <a
         v-for="tab in tabs"
         :key="tab.id"
-        :class="{item: true, active: selected === tab.id}"
+        :class="{ item: true, active: selected === tab.id }"
         @click.prevent="selected = tab.id"
       >
         {{ tab.label }}
       </a>
     </div>
 
-    <div class="ui bottom attached active tab segment" :key="selected">
-      <slot :name="selected"></slot>
+    <div class="ui bottom attached active tab segment">
+      <slot :name="selected" />
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Tabs',
-  props: {
-    tabs: {
-      type: Array,
-      required: true,
-    },
-  },
-  data() {
-    const selected = this.tabs.find(tab => tab.selected);
+<script setup>
+import { ref } from 'vue';
 
-    return {
-      selected: selected ? selected.id : this.tabs[0].id,
-    };
+const props = defineProps({
+  tabs: {
+    type: Array,
+    required: true,
   },
-};
+});
+
+const initialTab = props.tabs.find((tab) => tab.selected);
+const selected = ref(initialTab ? initialTab.id : props.tabs[0].id);
 </script>
-
-<style scoped>
-
-</style>

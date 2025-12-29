@@ -1,114 +1,92 @@
 <template>
   <Tabs :tabs="tabs">
-    <div slot="css">
-      <vue-code-highlight language="css">{{ css }}</vue-code-highlight>
-    </div>
+    <template #css>
+      <pre class="code-block"><code>{{ css }}</code></pre>
+    </template>
 
-    <div slot="scss">
-      <vue-code-highlight language="css">{{ scss }}</vue-code-highlight>
-    </div>
+    <template #scss>
+      <pre class="code-block"><code>{{ scss }}</code></pre>
+    </template>
 
-    <div slot="json">
-      <vue-code-highlight language="javascript">
-        module.exports = {{ JSON.stringify(json, undefined, 2) }}
-      </vue-code-highlight>
-    </div>
+    <template #json>
+      <pre class="code-block"><code>module.exports = {{ JSON.stringify(json, undefined, 2) }}</code></pre>
+    </template>
   </Tabs>
 </template>
 
-<script>
-import { component as VueCodeHighlight } from 'vue-code-highlight';
+<script setup>
+import { computed } from 'vue';
 import Tabs from './Tabs.vue';
 
-export default {
-  name: 'ColorCode',
-
-  components: {
-    Tabs,
-    VueCodeHighlight,
+const props = defineProps({
+  swatches: {
+    type: Array,
+    required: true,
   },
+});
 
-  props: {
-    swatches: {
-      type: Array,
-      required: true,
-    },
-  },
+const tabs = [
+  { id: 'css', label: 'CSS', selected: true },
+  { id: 'scss', label: 'SCSS' },
+  { id: 'json', label: 'JSON' },
+];
 
-  data() {
-    return {
-      tabs: [
-        {
-          id: 'css',
-          label: 'CSS',
-          selected: true,
-        },
-        {
-          id: 'scss',
-          label: 'SCSS',
-        },
-        {
-          id: 'json',
-          label: 'JSON',
-        },
-      ],
-    };
-  },
+const css = computed(() => {
+  const vars = props.swatches.reduce((result, el) => {
+    const colorVars = el.map((e) => {
+      const hsl = e.toHslString();
+      return `         --${e.name}: ${hsl};`;
+    });
+    result.push(...colorVars);
+    return result;
+  }, []);
 
-  computed: {
-    css() {
-      const css = this.swatches.reduce((result, el) => {
-        const vars = el.map((e) => {
-          const hsl = e.toHslString();
+  return `:root { \n${vars.join('\n')} }`;
+});
 
-          return `         --${e.name}: ${hsl};`;
-        });
+const scss = computed(() => {
+  const vars = props.swatches.reduce((result, el) => {
+    const colorVars = el.map((e) => {
+      const hsl = e.toHslString();
+      return `$color-${e.name}: ${hsl};`;
+    });
+    result.push(...colorVars);
+    return result;
+  }, []);
 
-        result.push(...vars);
+  return vars.join('\n');
+});
 
-        return result;
-      }, []);
-
-      return `:root { \n${css.join('\n')} }`;
-    },
-
-    scss() {
-      const scss = this.swatches.reduce((result, el) => {
-        const vars = el.map((e) => {
-          const hsl = e.toHslString();
-
-          return `$color-${e.name}: ${hsl};`;
-        });
-
-        result.push(...vars);
-
-        return result;
-      }, []);
-
-      return `${scss.join('\n')}`;
-    },
-
-    json() {
-      return this.swatches.reduce((result, el) => {
-        const data = Object.assign({}, result);
-
-        el.forEach((e) => {
-          data[e.name] = {
-            rgba: e.toRgb(),
-            hsla: e.toHsl(),
-            hsva: e.toHsv(),
-            text: e.text,
-            contrast: e.contrast,
-          };
-        });
-
-        return data;
-      }, {});
-    },
-  },
-};
+const json = computed(() => {
+  return props.swatches.reduce((result, el) => {
+    const data = { ...result };
+    el.forEach((e) => {
+      data[e.name] = {
+        rgba: e.toRgb(),
+        hsla: e.toHsl(),
+        hsva: e.toHsv(),
+        text: e.text,
+        contrast: e.contrast,
+      };
+    });
+    return data;
+  }, {});
+});
 </script>
 
 <style scoped>
-  @import '~vue-code-highlight/themes/prism-tomorrow.css';
+.code-block {
+  background: #1d1f21;
+  color: #c5c8c6;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.code-block code {
+  white-space: pre;
+}
 </style>

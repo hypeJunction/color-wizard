@@ -19,3 +19,16 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw*
+
+# AI assistant files
+.ai-assistant
+.ai-project
+.claude
+.clinerules
+.cursorrules
+.junie
+.windsurfrules
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+JULES.md

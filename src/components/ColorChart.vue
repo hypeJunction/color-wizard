@@ -1,17 +1,27 @@
-<script>
+<template>
+  <Scatter :data="chartData" :options="options" />
+</template>
+
+<script setup>
+import { Scatter } from 'vue-chartjs';
 import {
-  Scatter,
-  mixins,
-} from 'vue-chartjs';
+  Chart as ChartJS,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
-const { reactiveProp } = mixins;
+ChartJS.register(LinearScale, PointElement, Tooltip, Legend);
 
-export default {
-  extends: Scatter,
-  mixins: [reactiveProp],
-  props: ['options'],
-  mounted() {
-    this.renderChart(this.chartData, this.options);
+defineProps({
+  chartData: {
+    type: Object,
+    required: true,
   },
-};
+  options: {
+    type: Object,
+    required: true,
+  },
+});
 </script>
