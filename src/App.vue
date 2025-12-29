@@ -1,16 +1,9 @@
 <template>
   <div id="app">
-    <ColorWizard/>
+    <ColorWizard />
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import ColorWizard from './components/ColorWizard.vue';
-
-export default {
-  name: 'app',
-  components: {
-    ColorWizard,
-  },
-};
 </script>
