@@ -26,6 +26,12 @@
             {{ tab.label }}
           </a>
         </div>
+        <button
+          class="ui button mini print-button"
+          @click="printPalette"
+        >
+          Print
+        </button>
       </header>
 
       <main class="app-content">
@@ -244,6 +250,43 @@
                   class="ui button secondary"
                   @click.prevent="addLevel"
                 >Add Level</a>
+
+                <!-- Print-only layout -->
+                <div class="print-palette">
+                  <div
+                    v-for="(color, colorIndex) in model.colors"
+                    :key="colorIndex"
+                    class="print-color-section"
+                  >
+                    <div class="print-color-header">
+                      <span class="print-color-title">{{ color.name }}</span>
+                      <span class="print-color-info">
+                        H: {{ color.hue }}° | S<sub>d</sub>: {{ color.saturationOffset }} | L<sub>d</sub>: {{ color.luminanceOffset }}
+                      </span>
+                    </div>
+                    <div class="print-swatches">
+                      <div
+                        v-for="(swatch, swatchIndex) in swatches[colorIndex]"
+                        :key="swatchIndex"
+                        class="print-swatch"
+                      >
+                        <div class="print-swatch-header">
+                          <span class="print-swatch-name">{{ swatch.name }}</span>
+                          <span class="print-swatch-contrast">{{ swatch.contrast }}:1</span>
+                        </div>
+                        <div
+                          class="print-swatch-box"
+                          :style="getBoxStyle(swatch)"
+                        />
+                        <div class="print-swatch-values">
+                          <div>{{ swatch.toHexString() }}</div>
+                          <div>{{ swatch.toRgbString() }}</div>
+                          <div>{{ swatch.toHslString() }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </form>
@@ -691,6 +734,10 @@ const addLevel = (): void => {
   });
 };
 
+const printPalette = (): void => {
+  window.print();
+};
+
 // Export format computations
 const css = computed(() => {
   const vars = swatches.value.reduce<string[]>((result, el) => {
@@ -989,5 +1036,141 @@ defineExpose({
 
 .about-footer a:hover {
   text-decoration: underline;
+}
+
+.print-button {
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+/* Hide print-only elements on screen */
+.print-palette {
+  display: none;
+}
+
+/* Print styles */
+@media print {
+  .color-wizard {
+    display: block;
+  }
+
+  /* Hide sidebar */
+  .color-wizard > :deep(.settings-sidebar) {
+    display: none !important;
+  }
+
+  .main-area {
+    margin-left: 0;
+  }
+
+  /* Hide header with tabs and print button */
+  .app-header {
+    display: none !important;
+  }
+
+  /* Hide non-palette tabs */
+  .tab-content:not(:first-child) {
+    display: none !important;
+  }
+
+  /* Show palette tab */
+  .tab-content:first-child {
+    display: block !important;
+    padding: 0;
+  }
+
+  /* Hide the form grid padding */
+  .ui.grid.padded {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide Add Color / Add Level buttons */
+  .tab-content > form > .ui.grid > .column > a.ui.button {
+    display: none !important;
+  }
+
+  /* Hide the table on print */
+  .ui.celled.table {
+    display: none !important;
+  }
+
+  /* Show print palette */
+  .print-palette {
+    display: block !important;
+  }
+
+  .print-color-section {
+    page-break-inside: avoid;
+    margin-bottom: 1.5em;
+  }
+
+  .print-color-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1em;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.3em;
+    margin-bottom: 0.5em;
+  }
+
+  .print-color-title {
+    font-weight: bold;
+    font-size: 12pt;
+    text-transform: capitalize;
+  }
+
+  .print-color-info {
+    font-size: 9pt;
+    color: #666;
+  }
+
+  .print-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+  }
+
+  .print-swatch {
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  .print-swatch-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 7pt;
+    margin-bottom: 2px;
+  }
+
+  .print-swatch-name {
+    font-weight: bold;
+  }
+
+  .print-swatch-contrast {
+    color: #666;
+  }
+
+  .print-swatch-box {
+    width: 100%;
+    height: 40px;
+    border-radius: 2px;
+    border: 1px solid #ddd;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-swatch-values {
+    font-size: 6pt;
+    line-height: 1.4;
+    margin-top: 2px;
+    word-break: break-all;
+  }
+
+  /* Ensure colors print correctly */
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
 }
 </style>
