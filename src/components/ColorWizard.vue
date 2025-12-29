@@ -278,6 +278,13 @@
         </div>
 
         <div
+          v-show="activeTab === 'csv'"
+          class="tab-content code-tab"
+        >
+          <pre class="code-block"><code>{{ csv }}</code></pre>
+        </div>
+
+        <div
           v-show="activeTab === 'about'"
           class="tab-content about-content"
         >
@@ -402,6 +409,7 @@ const mainTabs = [
   { id: 'css', label: 'CSS' },
   { id: 'scss', label: 'SCSS' },
   { id: 'json', label: 'JSON' },
+  { id: 'csv', label: 'CSV' },
   { id: 'tokens', label: 'Design Tokens' },
   { id: 'about', label: 'About' },
 ];
@@ -735,6 +743,29 @@ interface DesignTokenGroup {
   $type: string;
   [key: string]: string | { [level: string]: DesignToken };
 }
+
+const csv = computed(() => {
+  const headers = ['name', 'hex', 'r', 'g', 'b', 'h', 's', 'l', 'text', 'contrast'];
+  const rows = swatches.value.flatMap((colorSwatches) =>
+    colorSwatches.map((swatch) => {
+      const rgb = swatch.toRgb();
+      const hsl = swatch.toHsl();
+      return [
+        swatch.name,
+        swatch.toHexString(),
+        rgb.r,
+        rgb.g,
+        rgb.b,
+        Math.round(hsl.h),
+        Math.round(hsl.s * 100),
+        Math.round(hsl.l * 100),
+        swatch.text,
+        swatch.contrast,
+      ].join(',');
+    })
+  );
+  return [headers.join(','), ...rows].join('\n');
+});
 
 const designTokens = computed(() => {
   const tokens: { color: DesignTokenGroup } = {
