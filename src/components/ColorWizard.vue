@@ -239,6 +239,11 @@
                   class="ui button primary"
                   @click.prevent="addColor"
                 >Add Color</a>
+
+                <a
+                  class="ui button secondary"
+                  @click.prevent="addLevel"
+                >Add Level</a>
               </div>
             </div>
           </form>
@@ -658,6 +663,26 @@ const removeLevel = (index: number): void => {
   model.colors.forEach((color) => color.levels.splice(index, 1));
 };
 
+const addLevel = (): void => {
+  // Calculate the next offset by continuing the pattern from the last level
+  // Default pattern continues with -9 increments for darker shades
+  const lastOffset = model.levels.length > 0
+    ? model.levels[model.levels.length - 1].offset
+    : 0;
+  const newOffset = lastOffset - 9;
+
+  // New levels are typically darker, so use light text by default
+  model.levels.push({
+    offset: newOffset,
+    lightText: true,
+  });
+
+  // Add corresponding level entry to each color
+  model.colors.forEach((color) => {
+    color.levels.push({ offset: 0 });
+  });
+};
+
 // Export format computations
 const css = computed(() => {
   const vars = swatches.value.reduce<string[]>((result, el) => {
@@ -740,6 +765,7 @@ defineExpose({
   swatches,
   calcContrast,
   addColor,
+  addLevel,
 });
 </script>
 

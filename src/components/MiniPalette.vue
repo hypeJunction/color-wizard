@@ -4,6 +4,7 @@
         v-for="(row, rowIndex) in swatches"
         :key="rowIndex"
         class="palette-row"
+        :style="{ '--columns': levelCount }"
     >
       <div
           v-for="(swatch, colIndex) in row"
@@ -17,16 +18,20 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+
 interface Swatch {
   toHslString: () => string;
   text: string;
   contrast: number;
 }
 
-defineProps<{
+const props = defineProps<{
   swatches: Swatch[][];
   contrast: number;
 }>();
+
+const levelCount = computed(() => props.swatches[0]?.length ?? 10);
 </script>
 
 <style scoped>
@@ -41,7 +46,7 @@ defineProps<{
 .palette-row {
   overflow: hidden;
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
+  grid-template-columns: repeat(var(--columns), 1fr);
   grid-gap: 2px;
 }
 
@@ -55,6 +60,7 @@ defineProps<{
 
 .color-box.negative::after {
   content: "\00d7";
-  font-size: 1em;
+  font-size: calc(100% - 2px);
+  line-height: 0;
 }
 </style>
