@@ -5,7 +5,7 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Scatter } from 'vue-chartjs';
 import {
   Chart as ChartJS,
@@ -13,18 +13,14 @@ import {
   PointElement,
   Tooltip,
   Legend,
+  type ChartData,
+  type ChartOptions,
 } from 'chart.js';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend);
 
-defineProps({
-  chartData: {
-    type: Object,
-    required: true,
-  },
-  options: {
-    type: Object,
-    required: true,
-  },
-});
+defineProps<{
+  chartData: ChartData<'scatter'>;
+  options: ChartOptions<'scatter'>;
+}>();
 </script>

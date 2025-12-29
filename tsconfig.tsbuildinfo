@@ -1,0 +1,1 @@
+{"root":["./src/env.d.ts","./src/main.ts","./src/App.vue","./src/components/ColorChart.vue","./src/components/ColorCode.vue","./src/components/ColorWizard.vue","./src/components/Tabs.vue","./tests/unit/example.spec.ts"],"version":"5.9.3"}

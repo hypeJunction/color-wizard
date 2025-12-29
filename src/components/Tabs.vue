@@ -17,15 +17,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
-const props = defineProps({
-  tabs: {
-    type: Array,
-    required: true,
-  },
-});
+interface Tab {
+  id: string;
+  label: string;
+  selected?: boolean;
+}
+
+const props = defineProps<{
+  tabs: Tab[];
+}>();
 
 const initialTab = props.tabs.find((tab) => tab.selected);
 const selected = ref(initialTab ? initialTab.id : props.tabs[0].id);

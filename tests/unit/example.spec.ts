@@ -1,10 +1,45 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import tinycolor from 'tinycolor2';
+import type { Instance as TinycolorInstance } from 'tinycolor2';
 import ColorWizard from '../../src/components/ColorWizard.vue';
 
+interface ColorDefinition {
+  name: string;
+  hue: number;
+  saturationOffset: number;
+  luminanceOffset: number;
+  levels: { offset: number }[];
+  greyscale?: boolean;
+}
+
+interface Swatch extends TinycolorInstance {
+  name: string;
+  text: string;
+  contrast: number;
+  baseColor: ColorDefinition;
+}
+
+interface ColorWizardVM {
+  model: {
+    luminance: number;
+    hue: number;
+    factor: number;
+    adjust: number;
+    shiftS: number;
+    contrast: number;
+    light: string;
+    dark: string;
+    levels: { offset: number; lightText: boolean }[];
+    colors: ColorDefinition[];
+  };
+  swatches: Swatch[][];
+  calcContrast: (foreground: TinycolorInstance, background: TinycolorInstance) => number;
+  addColor: () => void;
+}
+
 describe('ColorWizard.vue', () => {
-  let wrapper;
+  let wrapper: VueWrapper;
 
   beforeEach(() => {
     wrapper = mount(ColorWizard, {
@@ -17,7 +52,7 @@ describe('ColorWizard.vue', () => {
   });
 
   it('computes swatches', async () => {
-    const { vm } = wrapper;
+    const vm = wrapper.vm as unknown as ColorWizardVM;
 
     // Update the model for testing
     vm.model.luminance = 60;
@@ -63,13 +98,13 @@ describe('ColorWizard.vue', () => {
   });
 
   it('calculates contrast', () => {
-    const { vm } = wrapper;
+    const vm = wrapper.vm as unknown as ColorWizardVM;
 
-    const tests = [
-      ['#000000', '#000000', '1.00'],
-      ['#000000', '#ffffff', '21.00'],
-      ['#0000ff', '#ffffff', '8.59'],
-      ['#ffffff', '#0000ff', '8.59'],
+    const tests: [string, string, number][] = [
+      ['#000000', '#000000', 1.00],
+      ['#000000', '#ffffff', 21.00],
+      ['#0000ff', '#ffffff', 8.59],
+      ['#ffffff', '#0000ff', 8.59],
     ];
 
     tests.forEach((test) => {
@@ -81,7 +116,7 @@ describe('ColorWizard.vue', () => {
   });
 
   it('adds color', async () => {
-    const { vm } = wrapper;
+    const vm = wrapper.vm as unknown as ColorWizardVM;
 
     vm.addColor();
     await wrapper.vm.$nextTick();

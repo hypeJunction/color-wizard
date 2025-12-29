@@ -14,16 +14,37 @@
   </Tabs>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
+import type { Instance as TinycolorInstance } from 'tinycolor2';
 import Tabs from './Tabs.vue';
 
-const props = defineProps({
-  swatches: {
-    type: Array,
-    required: true,
-  },
-});
+interface ColorDefinition {
+  name: string;
+  hue: number;
+  saturationOffset: number;
+  luminanceOffset: number;
+  levels: { offset: number }[];
+}
+
+interface Swatch extends TinycolorInstance {
+  name: string;
+  text: string;
+  contrast: number;
+  baseColor: ColorDefinition;
+}
+
+interface SwatchJson {
+  rgba: { r: number; g: number; b: number; a: number };
+  hsla: { h: number; s: number; l: number; a: number };
+  hsva: { h: number; s: number; v: number; a: number };
+  text: string;
+  contrast: number;
+}
+
+const props = defineProps<{
+  swatches: Swatch[][];
+}>();
 
 const tabs = [
   { id: 'css', label: 'CSS', selected: true },
@@ -32,7 +53,7 @@ const tabs = [
 ];
 
 const css = computed(() => {
-  const vars = props.swatches.reduce((result, el) => {
+  const vars = props.swatches.reduce<string[]>((result, el) => {
     const colorVars = el.map((e) => {
       const hsl = e.toHslString();
       return `         --${e.name}: ${hsl};`;
@@ -45,7 +66,7 @@ const css = computed(() => {
 });
 
 const scss = computed(() => {
-  const vars = props.swatches.reduce((result, el) => {
+  const vars = props.swatches.reduce<string[]>((result, el) => {
     const colorVars = el.map((e) => {
       const hsl = e.toHslString();
       return `$color-${e.name}: ${hsl};`;
@@ -58,7 +79,7 @@ const scss = computed(() => {
 });
 
 const json = computed(() => {
-  return props.swatches.reduce((result, el) => {
+  return props.swatches.reduce<Record<string, SwatchJson>>((result, el) => {
     const data = { ...result };
     el.forEach((e) => {
       data[e.name] = {

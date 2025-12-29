@@ -178,7 +178,7 @@
         <div class="ten wide column">
           <div class="palette">
             <div
-              v-for="(color, index) in model.colors"
+              v-for="(_color, index) in model.colors"
               :key="index"
             >
               <div
@@ -203,7 +203,7 @@
               <tr>
                 <th />
                 <th
-                  v-for="(level, index) in model.levels"
+                  v-for="(_level, index) in model.levels"
                   :key="index"
                 >
                   Level {{ index }}
@@ -411,20 +411,59 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { reactive, computed } from 'vue';
 import tinycolor from 'tinycolor2';
+import type { Instance as TinycolorInstance } from 'tinycolor2';
+import type { ChartData, ChartOptions } from 'chart.js';
 import ColorCode from './ColorCode.vue';
 import ColorChart from './ColorChart.vue';
 
+interface Level {
+  offset: number;
+  lightText: boolean;
+}
+
+interface ColorLevel {
+  offset: number;
+}
+
+interface ColorDefinition {
+  name: string;
+  hue: number;
+  saturationOffset: number;
+  luminanceOffset: number;
+  levels: ColorLevel[];
+}
+
+interface Swatch extends TinycolorInstance {
+  name: string;
+  text: string;
+  contrast: number;
+  baseColor: ColorDefinition;
+}
+
+interface Model {
+  luminance: number;
+  hue: number;
+  factor: number;
+  adjust: number;
+  shiftS: number;
+  contrast: number;
+  light: string;
+  dark: string;
+  levels: Level[];
+  colors: ColorDefinition[];
+}
+
 const offsets = [44, 40, 36, 27, 18, 9, 0, -9, -18, -27];
 
-const createLevels = () => offsets.map((offset, index) => ({
+const createLevels = (): Level[] => offsets.map((offset, index) => ({
   offset,
   lightText: index >= 6,
 }));
 
-const defaults = {
+const defaults: Record<string, number> = {
   red: 360,
   pink: 339,
   grape: 288,
@@ -440,7 +479,7 @@ const defaults = {
   grey: 0,
 };
 
-const createColors = () => Object.keys(defaults).map((name) => ({
+const createColors = (): ColorDefinition[] => Object.keys(defaults).map((name) => ({
   name,
   hue: defaults[name],
   saturationOffset: name === 'grey' ? -100 : 0,
@@ -448,7 +487,7 @@ const createColors = () => Object.keys(defaults).map((name) => ({
   levels: offsets.map(() => ({ offset: 0 })),
 }));
 
-const model = reactive({
+const model = reactive<Model>({
   luminance: 50,
   hue: 0,
   factor: 0,
@@ -461,24 +500,24 @@ const model = reactive({
   colors: createColors(),
 });
 
-const minmax = (val) => Math.max(Math.min(val, 0.99), 0.01);
+const minmax = (val: number): number => Math.max(Math.min(val, 0.99), 0.01);
 
-const calcLuminance = (levelIndex, color = null) => {
+const calcLuminance = (levelIndex: number, color: ColorDefinition | null = null): number => {
   const colorOffset = color ? color.levels[levelIndex].offset + color.luminanceOffset : 0;
   const offset = model.levels[levelIndex].offset + colorOffset;
   const luminance = model.luminance + offset;
   return minmax(luminance / 100);
 };
 
-const calcSaturation = (luminance) => {
+const calcSaturation = (luminance: number): number => {
   const saturation = (luminance ** 2) * model.factor
     + luminance * model.adjust
     + model.shiftS;
   return minmax(saturation);
 };
 
-const calcContrast = (foreground, background) => {
-  const relBrightness = (light) => {
+const calcContrast = (foreground: TinycolorInstance, background: TinycolorInstance): number => {
+  const relBrightness = (light: number): number => {
     const sRgb = light / 255;
     if (sRgb <= 0.03928) {
       return sRgb / 12.92;
@@ -486,7 +525,7 @@ const calcContrast = (foreground, background) => {
     return ((sRgb + 0.055) / 1.055) ** 2.4;
   };
 
-  const relLuminance = (rgb) => (
+  const relLuminance = (rgb: { r: number; g: number; b: number }): number => (
     0.2126 * relBrightness(rgb.r)
     + 0.7152 * relBrightness(rgb.g)
     + 0.0722 * relBrightness(rgb.b)
@@ -495,21 +534,22 @@ const calcContrast = (foreground, background) => {
   const fRL = relLuminance(foreground.toRgb());
   const bRL = relLuminance(background.toRgb());
 
-  return ((Math.max(fRL, bRL) + 0.05) / (Math.min(fRL, bRL) + 0.05)).toFixed(2);
+  return Number(((Math.max(fRL, bRL) + 0.05) / (Math.min(fRL, bRL) + 0.05)).toFixed(2));
 };
 
-const swatches = computed(() => {
+const swatches = computed<Swatch[][]>(() => {
   return model.colors.map((color) => (
     Object.keys(model.levels).map((i) => {
-      const luminance = calcLuminance(i, color);
+      const levelIndex = Number(i);
+      const luminance = calcLuminance(levelIndex, color);
       const saturation = calcSaturation(luminance);
-      const isLightText = model.levels[i].lightText;
+      const isLightText = model.levels[levelIndex].lightText;
 
       const swatch = tinycolor({
         h: color.hue || 0,
         s: saturation + color.saturationOffset / 100,
         l: luminance,
-      });
+      }) as Swatch;
 
       swatch.name = `${color.name}-${i}`;
       swatch.text = isLightText ? model.light : model.dark;
@@ -521,8 +561,8 @@ const swatches = computed(() => {
   ));
 });
 
-const chartData = computed(() => ({
-  datasets: model.levels.map((level, index) => {
+const chartData = computed<ChartData<'scatter'>>(() => ({
+  datasets: model.levels.map((_level, index) => {
     const luminance = calcLuminance(index);
     const saturation = calcSaturation(luminance);
 
@@ -539,7 +579,7 @@ const chartData = computed(() => ({
   }),
 }));
 
-const chartOptions = computed(() => ({
+const chartOptions = computed<ChartOptions<'scatter'>>(() => ({
   plugins: {
     legend: {
       display: false,
@@ -568,12 +608,12 @@ const chartOptions = computed(() => ({
   },
 }));
 
-const getBoxStyle = (swatch) => ({
+const getBoxStyle = (swatch: Swatch): { backgroundColor: string; color: string } => ({
   backgroundColor: swatch.toHslString(),
   color: swatch.text,
 });
 
-const addColor = () => {
+const addColor = (): void => {
   model.colors.push({
     name: 'other',
     hue: Math.floor(Math.random() * 360),
@@ -583,11 +623,11 @@ const addColor = () => {
   });
 };
 
-const removeColor = (index) => {
+const removeColor = (index: number): void => {
   model.colors.splice(index, 1);
 };
 
-const removeLevel = (index) => {
+const removeLevel = (index: number): void => {
   model.levels.splice(index, 1);
   model.colors.forEach((color) => color.levels.splice(index, 1));
 };
