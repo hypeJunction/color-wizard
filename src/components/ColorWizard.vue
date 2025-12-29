@@ -2,7 +2,7 @@
   <div>
     <div class="ui grid padded">
       <div class="column">
-        <a href="http://github.com/hypejunction/color-wizard"><h1>Systematic Color Palette <i class="github icon"></i>
+        <a href="http://github.com/hypejunction/color-wizard"><h1>Systematic Color Palette <i class="github icon" />
         </h1>
         </a>
 
@@ -36,7 +36,12 @@
             <label>Base luminance</label>
 
             <div class="ui left labeled input">
-              <div class="ui label" title="Luminance at Level 6">L<sub>6</sub></div>
+              <div
+                class="ui label"
+                title="Luminance at Level 6"
+              >
+                L<sub>6</sub>
+              </div>
               <input
                 v-model.number="model.luminance"
                 type="number"
@@ -52,7 +57,12 @@
             <label>Preview Hue</label>
 
             <div class="ui left labeled input">
-              <div class="ui label" title="Hue for chart preview">H<sup>&deg;</sup></div>
+              <div
+                class="ui label"
+                title="Hue for chart preview"
+              >
+                H<sup>&deg;</sup>
+              </div>
               <input
                 v-model.number="model.hue"
                 type="number"
@@ -68,7 +78,9 @@
             <label>Saturation</label>
 
             <div class="ui left labeled input">
-              <div class="ui label">a</div>
+              <div class="ui label">
+                a
+              </div>
               <input
                 v-model.number="model.factor"
                 type="number"
@@ -80,7 +92,9 @@
             </div>
 
             <div class="ui left labeled input">
-              <div class="ui label">b</div>
+              <div class="ui label">
+                b
+              </div>
               <input
                 v-model.number="model.adjust"
                 type="number"
@@ -92,7 +106,9 @@
             </div>
 
             <div class="ui left labeled input">
-              <div class="ui label">c</div>
+              <div class="ui label">
+                c
+              </div>
               <input
                 v-model.number="model.shiftS"
                 type="number"
@@ -153,12 +169,18 @@
             <small>+</small>
             c
           </h3>
-          <ColorChart :chart-data="chartData" :options="chartOptions" />
+          <ColorChart
+            :chart-data="chartData"
+            :options="chartOptions"
+          />
         </div>
 
         <div class="ten wide column">
           <div class="palette">
-            <div v-for="(color, index) in model.colors" :key="index">
+            <div
+              v-for="(color, index) in model.colors"
+              :key="index"
+            >
               <div
                 v-for="(swatch, index2) in swatches[index]"
                 :key="index2"
@@ -180,7 +202,10 @@
             <thead>
               <tr>
                 <th />
-                <th v-for="(level, index) in model.levels" :key="index">
+                <th
+                  v-for="(level, index) in model.levels"
+                  :key="index"
+                >
                   Level {{ index }}
                 </th>
               </tr>
@@ -188,7 +213,10 @@
             <tbody>
               <tr>
                 <td />
-                <td v-for="(level, index) in model.levels" :key="index">
+                <td
+                  v-for="(level, index) in model.levels"
+                  :key="index"
+                >
                   <div class="field">
                     <div class="ui left labeled input">
                       <div
@@ -209,7 +237,10 @@
 
                   <div class="field">
                     <div class="ui checkbox">
-                      <input v-model="level.lightText" type="checkbox">
+                      <input
+                        v-model="level.lightText"
+                        type="checkbox"
+                      >
                       <label>Light Text</label>
                     </div>
                   </div>
@@ -225,18 +256,36 @@
                 </td>
               </tr>
 
-              <tr v-for="(color, index) in model.colors" :key="index" class="top aligned">
+              <tr
+                v-for="(color, index) in model.colors"
+                :key="index"
+                class="top aligned"
+              >
                 <td>
                   <div class="field">
                     <div class="ui left labeled input">
-                      <div class="ui label" title="Color Variable Name">$</div>
-                      <input v-model="color.name" type="text" required>
+                      <div
+                        class="ui label"
+                        title="Color Variable Name"
+                      >
+                        $
+                      </div>
+                      <input
+                        v-model="color.name"
+                        type="text"
+                        required
+                      >
                     </div>
                   </div>
 
                   <div class="field">
                     <div class="ui left labeled input">
-                      <div class="ui label" title="Hue">H<sup>&deg;</sup></div>
+                      <div
+                        class="ui label"
+                        title="Hue"
+                      >
+                        H<sup>&deg;</sup>
+                      </div>
                       <input
                         v-model.number="color.hue"
                         type="number"
@@ -250,7 +299,12 @@
 
                   <div class="field">
                     <div class="ui left labeled input">
-                      <div class="ui label" title="Saturation Offset">S<sub>d</sub></div>
+                      <div
+                        class="ui label"
+                        title="Saturation Offset"
+                      >
+                        S<sub>d</sub>
+                      </div>
                       <input
                         v-model.number="color.saturationOffset"
                         type="number"
@@ -264,7 +318,12 @@
 
                   <div class="field">
                     <div class="ui left labeled input">
-                      <div class="ui label" title="Luminance Offset">L<sub>d</sub></div>
+                      <div
+                        class="ui label"
+                        title="Luminance Offset"
+                      >
+                        L<sub>d</sub>
+                      </div>
                       <input
                         v-model.number="color.luminanceOffset"
                         type="number"
@@ -295,11 +354,17 @@
                     class="color-box"
                     :style="getBoxStyle(swatch)"
                   >
-                    <span class="color-name" title="Color Variant Name">
+                    <span
+                      class="color-name"
+                      title="Color Variant Name"
+                    >
                       {{ swatch.name }}
                     </span>
 
-                    <span class="color-contrast" title="Contrast Ratio">
+                    <span
+                      class="color-contrast"
+                      title="Contrast Ratio"
+                    >
                       {{ `${swatch.contrast}:1` }}
                     </span>
                   </div>
@@ -332,7 +397,10 @@
             </tbody>
           </table>
 
-          <a class="ui button primary" @click.prevent="addColor">Add Color</a>
+          <a
+            class="ui button primary"
+            @click.prevent="addColor"
+          >Add Color</a>
         </div>
       </div>
     </form>

@@ -1,5 +1,8 @@
 <template>
-  <Scatter :data="chartData" :options="options" />
+  <Scatter
+    :data="chartData"
+    :options="options"
+  />
 </template>
 
 <script setup>
